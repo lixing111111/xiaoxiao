@@ -40,5 +40,8 @@ def history():
             'error': str(e)
         })
 
+# Vercel 需要这个
+app.debug = False
+
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run() 
