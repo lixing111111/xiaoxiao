@@ -1,77 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OKX 行情监控</title>
+    <title>Simple Flask App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .ticker {
-            margin-top: 20px;
-            font-size: 18px;
-            line-height: 1.6;
-        }
-        .price {
-            color: #2196F3;
-            font-weight: bold;
+            margin: 40px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>OKX 行情监控</h1>
-        <div id="ticker" class="ticker">
-            加载中...
-        </div>
-    </div>
-
-    <script>
-        // 定期更新状态
-        setInterval(updateStatus, 5000);
-        
-        // 更新状态
-        async function updateStatus() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                
-                if (data.success && data.data.ticker) {
-                    const ticker = data.data.ticker;
-                    document.getElementById('ticker').innerHTML = `
-                        <div>交易对：<span class="price">${ticker.symbol}</span></div>
-                        <div>最新价：<span class="price">${ticker.last}</span></div>
-                        <div>买一价：<span class="price">${ticker.bid}</span></div>
-                        <div>卖一价：<span class="price">${ticker.ask}</span></div>
-                        <div>24h成交量：<span class="price">${ticker.volume}</span></div>
-                    `;
-                } else {
-                    document.getElementById('ticker').textContent = 
-                        '获取数据失败：' + (data.error || '未知错误');
-                }
-            } catch (error) {
-                document.getElementById('ticker').textContent = 
-                    '更新失败：' + error.message;
-            }
-        }
-        
-        // 页面加载时立即更新一次
-        updateStatus();
-    </script>
+    <h1>Welcome to Flask App</h1>
+    <p>The application is running successfully!</p>
 </body>
 </html> 

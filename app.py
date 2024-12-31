@@ -1,32 +1,31 @@
 from flask import Flask, render_template, jsonify
+import logging
 
 app = Flask(__name__)
 
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        logger.info("访问主页")
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"主页错误: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/status')
 def get_status():
     try:
-        # 使用模拟数据
-        ticker = {
-            'symbol': 'BTC/USDT',
-            'last': 42000.00,
-            'bid': 41999.00,
-            'ask': 42001.00,
-            'volume': 1000.00
-        }
-        
+        logger.info("检查状态")
         return jsonify({
             'success': True,
-            'data': {
-                'running': True,
-                'ticker': ticker
-            }
+            'status': 'running'
         })
     except Exception as e:
-        print(f"Error in status: {str(e)}")
+        logger.error(f"状态检查错误: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -34,7 +33,12 @@ def get_status():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'ok'})
+    try:
+        logger.info("健康检查")
+        return jsonify({'status': 'ok'})
+    except Exception as e:
+        logger.error(f"健康检查错误: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run() 
