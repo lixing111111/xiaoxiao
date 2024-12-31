@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>预测系统</title>
+    <title>OKX 量化交易机器人</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,25 +22,22 @@
         h1, h2 {
             color: #333;
         }
-        .prediction {
-            font-size: 24px;
-            color: #2196F3;
-            margin: 20px 0;
+        .form-group {
+            margin-bottom: 15px;
         }
-        .history-table {
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .history-table th, .history-table td {
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
-            text-align: center;
+            border-radius: 4px;
+            box-sizing: border-box;
         }
-        .history-table th {
-            background-color: #f5f5f5;
-        }
-        .button {
+        button {
             background-color: #2196F3;
             color: white;
             border: none;
@@ -48,95 +45,157 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin-right: 10px;
         }
-        .button:hover {
+        button:hover {
             background-color: #1976D2;
         }
-        .timestamp {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .status.running {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+        .status.stopped {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+        .balance {
+            margin-top: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>预测系统</h1>
-        <button class="button" onclick="getPrediction()">获取预测</button>
-        <div id="prediction-result" class="prediction"></div>
-        <div id="prediction-timestamp" class="timestamp"></div>
-    </div>
-
-    <div class="container">
-        <h2>历史数据</h2>
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>号码1</th>
-                    <th>号码2</th>
-                    <th>号码3</th>
-                    <th>号码4</th>
-                </tr>
-            </thead>
-            <tbody id="history-data">
-            </tbody>
-        </table>
+        <h1>OKX 量化交易机器人</h1>
+        
+        <div class="form-group">
+            <label for="symbol">交易对</label>
+            <input type="text" id="symbol" value="BTC/USDT">
+        </div>
+        
+        <div class="form-group">
+            <label for="fast-period">快速均线周期</label>
+            <input type="number" id="fast-period" value="5">
+        </div>
+        
+        <div class="form-group">
+            <label for="slow-period">慢速均线周期</label>
+            <input type="number" id="slow-period" value="20">
+        </div>
+        
+        <button onclick="startTrading()" id="start-btn">启动交易</button>
+        <button onclick="stopTrading()" id="stop-btn" disabled>停止交易</button>
+        
+        <div id="status" class="status stopped">
+            交易状态：已停止
+        </div>
+        
+        <div id="balance" class="balance">
+            账户余额：加载中...
+        </div>
     </div>
 
     <script>
-        // 页面加载时获取历史数据
-        window.onload = function() {
-            getHistory();
-        };
-
-        // 获取预测结果
-        function getPrediction() {
-            fetch('/api/predict')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const predictions = data.prediction.predictions;
-                        document.getElementById('prediction-result').innerHTML = 
-                            `下期预测: ${predictions.join(', ')}`;
-                        document.getElementById('prediction-timestamp').innerHTML = 
-                            `预测时间: ${data.timestamp}`;
-                    } else {
-                        document.getElementById('prediction-result').innerHTML = 
-                            `预测失败: ${data.error}`;
-                    }
-                })
-                .catch(error => {
-                    document.getElementById('prediction-result').innerHTML = 
-                        `获取预测时出错: ${error}`;
+        // 定期更新状态
+        setInterval(updateStatus, 5000);
+        
+        // 启动交易
+        async function startTrading() {
+            const symbol = document.getElementById('symbol').value;
+            const fastPeriod = document.getElementById('fast-period').value;
+            const slowPeriod = document.getElementById('slow-period').value;
+            
+            try {
+                const response = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol,
+                        fast_period: parseInt(fastPeriod),
+                        slow_period: parseInt(slowPeriod)
+                    })
                 });
+                
+                const data = await response.json();
+                if (data.success) {
+                    updateButtons(true);
+                    updateStatus();
+                } else {
+                    alert('启动失败：' + data.message);
+                }
+            } catch (error) {
+                alert('启动失败：' + error.message);
+            }
         }
-
-        // 获取历史数据
-        function getHistory() {
-            fetch('/api/history')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const historyHtml = data.data.map(entry => `
-                            <tr>
-                                <td>${entry.date}</td>
-                                <td>${entry.numbers[0]}</td>
-                                <td>${entry.numbers[1]}</td>
-                                <td>${entry.numbers[2]}</td>
-                                <td>${entry.numbers[3]}</td>
-                            </tr>
-                        `).join('');
-                        document.getElementById('history-data').innerHTML = historyHtml;
-                    } else {
-                        document.getElementById('history-data').innerHTML = 
-                            `<tr><td colspan="5">获取历史数据失败: ${data.error}</td></tr>`;
-                    }
-                })
-                .catch(error => {
-                    document.getElementById('history-data').innerHTML = 
-                        `<tr><td colspan="5">获取历史数据时出错: ${error}</td></tr>`;
+        
+        // 停止交易
+        async function stopTrading() {
+            try {
+                const response = await fetch('/api/stop', {
+                    method: 'POST'
                 });
+                
+                const data = await response.json();
+                if (data.success) {
+                    updateButtons(false);
+                    updateStatus();
+                } else {
+                    alert('停止失败：' + data.message);
+                }
+            } catch (error) {
+                alert('停止失败：' + error.message);
+            }
+        }
+        
+        // 更新状态
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = data.data;
+                    
+                    // 更新状态显示
+                    const statusDiv = document.getElementById('status');
+                    statusDiv.className = 'status ' + (status.running ? 'running' : 'stopped');
+                    statusDiv.textContent = '交易状态：' + (status.running ? '运行中' : '已停止');
+                    
+                    // 更新按钮状态
+                    updateButtons(status.running);
+                    
+                    // 更新余额显示
+                    const balanceDiv = document.getElementById('balance');
+                    if (status.balance) {
+                        balanceDiv.textContent = '账户余额：' + 
+                            Object.entries(status.balance)
+                                .map(([currency, amount]) => `${currency}: ${amount}`)
+                                .join(', ');
+                    }
+                }
+            } catch (error) {
+                console.error('更新状态失败：', error);
+            }
+        }
+        
+        // 更新按钮状态
+        function updateButtons(isRunning) {
+            document.getElementById('start-btn').disabled = isRunning;
+            document.getElementById('stop-btn').disabled = !isRunning;
+            document.getElementById('symbol').disabled = isRunning;
+            document.getElementById('fast-period').disabled = isRunning;
+            document.getElementById('slow-period').disabled = isRunning;
         }
     </script>
 </body>
