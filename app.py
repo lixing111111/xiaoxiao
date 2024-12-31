@@ -54,4 +54,10 @@ def history():
         return jsonify({
             'success': False,
             'error': str(e)
-        }) 
+        })
+
+# Vercel 需要这个
+app.debug = False
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=3000) 
