@@ -2,8 +2,13 @@ from flask import Flask, render_template, jsonify
 import pandas as pd
 from datetime import datetime
 import yuxhe
+import os
 
 app = Flask(__name__)
+
+# 确保在 Vercel 环境中正确处理路径
+app.template_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
+app.static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
 
 @app.route('/')
 def index():
