@@ -1,23 +1,29 @@
 from flask import Flask, render_template, jsonify
 from datetime import datetime
-import json
-import os
 
 app = Flask(__name__)
 
-# 预定义的预测结果（避免在 Vercel 上进行大量计算）
+# 预定义的预测结果
 PREDICTIONS = {
     'next_date': '2024/12/31',
     'predictions': [3, 3, 3, 2]
 }
 
-# 从文件加载历史数据
-def load_history_data():
-    history_file = os.path.join(os.path.dirname(__file__), 'history.json')
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            return json.load(f)
-    return []
+# 预定义的历史数据
+HISTORY_DATA = [
+    {
+        "date": "2024/12/29",
+        "numbers": [2, 2, 0, 4]
+    },
+    {
+        "date": "2024/12/28",
+        "numbers": [9, 0, 7, 3]
+    },
+    {
+        "date": "2024/12/27",
+        "numbers": [1, 9, 2, 0]
+    }
+]
 
 @app.route('/')
 def index():
@@ -40,19 +46,12 @@ def predict():
 @app.route('/api/history')
 def history():
     try:
-        history_data = load_history_data()
         return jsonify({
             'success': True,
-            'data': history_data
+            'data': HISTORY_DATA
         })
     except Exception as e:
         return jsonify({
             'success': False,
             'error': str(e)
-        })
-
-# Vercel 需要这个
-app.debug = False
-
-if __name__ == '__main__':
-    app.run() 
+        }) 
