@@ -1,10 +1,4 @@
-from flask import Flask, render_template, jsonify, request
-from src.utils.okx_client import OKXClient
-import os
-from dotenv import load_dotenv
-
-# 加载环境变量
-load_dotenv()
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 
@@ -15,13 +9,19 @@ def index():
 @app.route('/api/status')
 def get_status():
     try:
-        client = OKXClient()
-        ticker = client.get_ticker('BTC/USDT')
+        # 使用模拟数据
+        ticker = {
+            'symbol': 'BTC/USDT',
+            'last': 42000.00,
+            'bid': 41999.00,
+            'ask': 42001.00,
+            'volume': 1000.00
+        }
         
         return jsonify({
             'success': True,
             'data': {
-                'running': False,
+                'running': True,
                 'ticker': ticker
             }
         })
@@ -32,11 +32,9 @@ def get_status():
             'error': str(e)
         }), 500
 
-# 添加健康检查端点
 @app.route('/health')
 def health():
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=port) 
+    app.run() 
